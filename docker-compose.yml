@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  kb-service:
+    build:
+      context: ./knowledge-base-service
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_USER=${KB_DB_USER:-postgres}
+      - DB_PASSWORD=${KB_DB_PASSWORD:-postgres}
+      - DB_NAME=${KB_DB_NAME:-kb_db}
+      - DB_HOST=kb-db
+    depends_on:
+      - kb-db
+    networks:
+      - kb-network
+
+  kb-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ${KB_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${KB_DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${KB_DB_NAME:-kb_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - kb-db-data:/var/lib/postgresql/data
+    networks:
+      - kb-network
+
+networks:
+  kb-network:
+    driver: bridge
+
+volumes:
+  kb-db-data:
