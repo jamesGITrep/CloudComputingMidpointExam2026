@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  audit-service:
+    build:
+      context: ./audit-log-service
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_USER=${AUDIT_DB_USER:-audit_user}
+      - DB_PASSWORD=${AUDIT_DB_PASSWORD:-audit_pass}
+      - DB_NAME=${AUDIT_DB_NAME:-audit_db}
+      - DB_HOST=audit-db
+    depends_on:
+      - audit-db
+    networks:
+      - audit-network
+
+  audit-db:
+    image: mariadb:10.11
+    environment:
+      MYSQL_ROOT_PASSWORD: ${AUDIT_DB_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${AUDIT_DB_NAME:-audit_db}
+      MYSQL_USER: ${AUDIT_DB_USER:-audit_user}
+      MYSQL_PASSWORD: ${AUDIT_DB_PASSWORD:-audit_pass}
+    ports:
+      - "3306:3306"
+    volumes:
+      - audit-db-data:/var/lib/mysql
+    networks:
+      - audit-network
+
+networks:
+  audit-network:
+    driver: bridge
+
+volumes:
+  audit-db-data:
