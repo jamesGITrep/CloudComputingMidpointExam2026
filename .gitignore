@@ -1,0 +1,14 @@
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+.env
+.DS_Store
+dist/
+build/
+*.log
+
+# Database volumes
+/db-data/

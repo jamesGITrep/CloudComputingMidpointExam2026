@@ -1,0 +1,132 @@
+version: '3.8'
+
+services:
+  api-gateway:
+    build:
+      context: ./api-gateway
+    ports:
+      - "80:80"
+    depends_on:
+      - frontend
+      - user-service
+      - ticket-service
+      - kb-service
+      - audit-service
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+    environment:
+      - VITE_API_URL=/api
+    networks:
+      - app-network
+
+  user-service:
+    build:
+      context: ./user-auth-service
+    environment:
+      - DB_USER=${USER_DB_USER}
+      - DB_PASSWORD=${USER_DB_PASSWORD}
+      - DB_NAME=${USER_DB_NAME}
+      - DB_HOST=${USER_DB_HOST}
+    depends_on:
+      - user-db
+    networks:
+      - app-network
+
+  user-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ${USER_DB_USER}
+      POSTGRES_PASSWORD: ${USER_DB_PASSWORD}
+      POSTGRES_DB: ${USER_DB_NAME}
+    volumes:
+      - user-db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  ticket-service:
+    build:
+      context: ./ticket-service
+    environment:
+      - DB_USER=${TICKET_DB_USER}
+      - DB_PASSWORD=${TICKET_DB_PASSWORD}
+      - DB_NAME=${TICKET_DB_NAME}
+      - DB_HOST=${TICKET_DB_HOST}
+    depends_on:
+      - ticket-db
+    networks:
+      - app-network
+
+  ticket-db:
+    image: mariadb:10-alpine
+    environment:
+      MYSQL_ROOT_PASSWORD: ${TICKET_DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${TICKET_DB_NAME}
+      MYSQL_USER: ${TICKET_DB_USER}
+      MYSQL_PASSWORD: ${TICKET_DB_PASSWORD}
+    volumes:
+      - ticket-db-data:/var/lib/mysql
+    networks:
+      - app-network
+
+  kb-service:
+    build:
+      context: ./knowledge-base-service
+    environment:
+      - DB_USER=${KB_DB_USER}
+      - DB_PASSWORD=${KB_DB_PASSWORD}
+      - DB_NAME=${KB_DB_NAME}
+      - DB_HOST=${KB_DB_HOST}
+    depends_on:
+      - kb-db
+    networks:
+      - app-network
+
+  kb-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: ${KB_DB_USER}
+      POSTGRES_PASSWORD: ${KB_DB_PASSWORD}
+      POSTGRES_DB: ${KB_DB_NAME}
+    volumes:
+      - kb-db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  audit-service:
+    build:
+      context: ./audit-log-service
+    environment:
+      - DB_USER=${AUDIT_DB_USER}
+      - DB_PASSWORD=${AUDIT_DB_PASSWORD}
+      - DB_NAME=${AUDIT_DB_NAME}
+      - DB_HOST=${AUDIT_DB_HOST}
+    depends_on:
+      - audit-db
+    networks:
+      - app-network
+
+  audit-db:
+    image: mariadb:10-alpine
+    environment:
+      MYSQL_ROOT_PASSWORD: ${AUDIT_DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${AUDIT_DB_NAME}
+      MYSQL_USER: ${AUDIT_DB_USER}
+      MYSQL_PASSWORD: ${AUDIT_DB_PASSWORD}
+    volumes:
+      - audit-db-data:/var/lib/mysql
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  user-db-data:
+  ticket-db-data:
+  kb-db-data:
+  audit-db-data:
