@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  ticket-service:
+    build:
+      context: ./ticket-service
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_USER=${TICKET_DB_USER:-ticket_user}
+      - DB_PASSWORD=${TICKET_DB_PASSWORD:-ticket_pass}
+      - DB_NAME=${TICKET_DB_NAME:-ticket_db}
+      - DB_HOST=ticket-db
+    depends_on:
+      - ticket-db
+    networks:
+      - ticket-network
+
+  ticket-db:
+    image: mariadb:10.11
+    environment:
+      MYSQL_ROOT_PASSWORD: ${TICKET_DB_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${TICKET_DB_NAME:-ticket_db}
+      MYSQL_USER: ${TICKET_DB_USER:-ticket_user}
+      MYSQL_PASSWORD: ${TICKET_DB_PASSWORD:-ticket_pass}
+    ports:
+      - "3306:3306"
+    volumes:
+      - ticket-db-data:/var/lib/mysql
+    networks:
+      - ticket-network
+
+networks:
+  ticket-network:
+    driver: bridge
+
+volumes:
+  ticket-db-data:
